@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+
+  <!-- ── Stat Cards ─────────────────────────────────────────────────────── -->
+  <div class="row g-4 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-blue">
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-value">{{ total }}</div>
+        <div class="stat-label">Total Applicants</div>
+        <div class="stat-sub">{{ active_jobs }} active jobs</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-green">
+        <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="stat-value">{{ shortlisted }}</div>
+        <div class="stat-label">Shortlisted</div>
+        <div class="stat-sub">Ready for interview</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-red">
+        <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+        <div class="stat-value">{{ rejected }}</div>
+        <div class="stat-label">Rejected</div>
+        <div class="stat-sub">{{ maybe }} under review</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card stat-amber">
+        <div class="stat-icon"><i class="bi bi-speedometer2"></i></div>
+        <div class="stat-value">{{ avg_score }}%</div>
+        <div class="stat-label">Avg ATS Score</div>
+        <div class="stat-sub">Across all candidates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Top Candidate ──────────────────────────────────────────────────── -->
+  {% if top %}
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4 top-candidate-card">
+        <div class="d-flex align-items-center gap-4 flex-wrap">
+          <div class="top-candidate-avatar">{{ (top.name or 'U')[0] }}</div>
+          <div class="flex-grow-1">
+            <div class="fw-bold fs-5">🏆 Top Candidate — {{ top.name }}</div>
+            <div class="text-muted small">{{ top.email }}</div>
+            <div class="mt-2">
+              <span class="badge rounded-pill bg-success">{{ top.recommendation_label }}</span>
+              <span class="badge rounded-pill bg-primary ms-1">{{ top.ats_score }}% ATS</span>
+            </div>
+          </div>
+          <a href="{{ url_for('candidates.detail', cid=top.id) }}" class="btn btn-outline-primary">
+            View Profile <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── Charts Row ─────────────────────────────────────────────────────── -->
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-title">Resume Upload Trends</div>
+            <div class="chart-sub">Monthly applications received</div>
+          </div>
+          <i class="bi bi-graph-up text-muted"></i>
+        </div>
+        <canvas id="monthlyChart" height="110"></canvas>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div>
+            <div class="chart-title">Recommendations</div>
+            <div class="chart-sub">AI hiring decisions</div>
+          </div>
+        </div>
+        <canvas id="recoChart" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-lg-6">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title">ATS Score Distribution</div>
+        </div>
+        <canvas id="scoreChart" height="160"></canvas>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title">Top Skills in Talent Pool</div>
+        </div>
+        <div id="skillBars" class="mt-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Recent Candidates Table ────────────────────────────────────────── -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-0">
+      <div class="d-flex align-items-center justify-content-between p-4 pb-0">
+        <div class="fw-semibold">Recent Applicants</div>
+        <a href="{{ url_for('candidates.list_candidates') }}" class="btn btn-sm btn-outline-secondary">
+          View All <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="table-responsive mt-3">
+        <table class="table ats-table mb-0">
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>ATS Score</th>
+              <th>Recommendation</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in recent %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="candidate-avatar-sm">{{ (c.name or 'U')[0] }}</div>
+                  <div>
+                    <div class="fw-semibold small">{{ c.name }}</div>
+                    <div class="text-muted" style="font-size:11px">{{ c.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="score-bar-wrap">
+                  <div class="score-bar-track">
+                    <div class="score-bar-fill {% if c.ats_score >= 70 %}bg-success{% elif c.ats_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                         style="width:{{ c.ats_score }}%"></div>
+                  </div>
+                  <span class="score-bar-label fw-semibold small">{{ c.ats_score }}%</span>
+                </div>
+              </td>
+              <td>
+                {% if c.recommendation_label == 'Highly Recommended' %}
+                  <span class="badge rounded-pill bg-success">{{ c.recommendation_label }}</span>
+                {% elif c.recommendation_label == 'Recommended' %}
+                  <span class="badge rounded-pill bg-primary">{{ c.recommendation_label }}</span>
+                {% elif c.recommendation_label == 'Needs Review' %}
+                  <span class="badge rounded-pill bg-warning text-dark">{{ c.recommendation_label }}</span>
+                {% else %}
+                  <span class="badge rounded-pill bg-danger">{{ c.recommendation_label }}</span>
+                {% endif %}
+              </td>
+              <td><span class="badge rounded-pill bg-secondary">{{ c.status }}</span></td>
+              <td>
+                <a href="{{ url_for('candidates.detail', cid=c.id) }}" class="btn btn-sm btn-outline-primary py-0">
+                  View
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No candidates yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /animate-in -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+const bands      = {{ bands | safe }};
+const monthlyLbl = {{ monthly_labels | safe }};
+const monthlyDat = {{ monthly_data | safe }};
+const topSkills  = {{ top_skills | safe }};
+const recoBrk    = {{ reco_breakdown | safe }};
+
+// ── Monthly Trend Chart ────────────────────────────────────────────────────
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'line',
+  data: {
+    labels: monthlyLbl,
+    datasets: [{
+      label: 'Resumes',
+      data: monthlyDat,
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59,130,246,0.08)',
+      borderWidth: 2.5,
+      pointBackgroundColor: '#3b82f6',
+      pointRadius: 4,
+      fill: true,
+      tension: 0.4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } }, beginAtZero: true },
+    }
+  }
+});
+
+// ── Recommendation Doughnut ─────────────────────────────────────────────────
+new Chart(document.getElementById('recoChart'), {
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(recoBrk),
+    datasets: [{ data: Object.values(recoBrk),
+      backgroundColor: ['#22c55e','#3b82f6','#f59e0b','#ef4444'],
+      borderWidth: 0, hoverOffset: 6 }]
+  },
+  options: {
+    responsive: true, cutout: '60%',
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } }
+  }
+});
+
+// ── Score Distribution Bar ──────────────────────────────────────────────────
+new Chart(document.getElementById('scoreChart'), {
+  type: 'bar',
+  data: {
+    labels: Object.keys(bands),
+    datasets: [{ label: 'Candidates', data: Object.values(bands),
+      backgroundColor: '#3b82f6', borderRadius: 6 }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } }, beginAtZero: true },
+    }
+  }
+});
+
+// ── Skills Bar (manual DOM) ─────────────────────────────────────────────────
+const skillEl  = document.getElementById('skillBars');
+const skillArr = Object.entries(topSkills).sort((a,b) => b[1]-a[1]).slice(0,7);
+const maxCount = skillArr[0]?.[1] || 1;
+skillEl.innerHTML = skillArr.map(([skill, count]) => `
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <div style="width:90px;font-size:12px;color:#64748b;text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${skill}</div>
+    <div style="flex:1;height:8px;background:#f1f5f9;border-radius:99px;overflow:hidden">
+      <div style="width:${(count/maxCount)*100}%;height:100%;background:linear-gradient(90deg,#3b82f6,#60a5fa);border-radius:99px;transition:width 0.7s ease"></div>
+    </div>
+    <div style="width:22px;font-size:12px;font-weight:600;color:#334155;text-align:right">${count}</div>
+  </div>
+`).join('');
+</script>
+{% endblock %}

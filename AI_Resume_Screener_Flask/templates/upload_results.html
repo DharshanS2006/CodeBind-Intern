@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Upload Results{% endblock %}
+{% block page_title %}Analysis Results{% endblock %}
+
+{% block content %}
+<div class="animate-in" style="max-width:720px">
+  <p class="text-muted mb-4">AI has finished analysing {{ results|length }} resume(s).</p>
+
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="p-4 pb-0 fw-semibold">Results</div>
+    {% for r in results %}
+    <div class="d-flex align-items-center gap-3 p-4 border-top">
+      {% if r.error %}
+        <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:36px;height:36px">
+          <i class="bi bi-x-lg text-white small"></i>
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-semibold small">{{ r.name }}</div>
+          <div class="text-danger small">{{ r.error }}</div>
+        </div>
+      {% else %}
+        <div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:36px;height:36px">
+          <i class="bi bi-check-lg text-white small"></i>
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-semibold small">{{ r.name }}</div>
+          <div class="text-muted small">{{ r.label }}</div>
+        </div>
+        <div class="fw-bold fs-5 {% if r.score >= 70 %}text-success{% elif r.score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+          {{ r.score }}%
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex gap-3">
+    <a href="{{ url_for('candidates.upload') }}" class="btn btn-outline-secondary flex-fill">
+      <i class="bi bi-arrow-left me-1"></i>Upload More
+    </a>
+    <a href="{{ url_for('candidates.list_candidates') }}" class="btn btn-primary flex-fill">
+      View All Candidates <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+</div>
+{% endblock %}

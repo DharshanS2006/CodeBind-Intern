@@ -1,0 +1,2 @@
+Encapsulation keeps file details inside the class.
+The file name is private and accessed through methods.

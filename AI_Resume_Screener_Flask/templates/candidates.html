@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Candidates{% endblock %}
+{% block page_title %}Candidates{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+
+  <!-- Filters -->
+  <form method="GET" action="{{ url_for('candidates.list_candidates') }}"
+        class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input type="text" name="search" class="form-control border-start-0 ps-0"
+                 placeholder="Search by name…" value="{{ search }}" />
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="recommendation" class="form-select form-select-sm">
+          <option value="">All recommendations</option>
+          <option value="shortlist" {% if reco=='shortlist' %}selected{% endif %}>Shortlisted</option>
+          <option value="maybe"    {% if reco=='maybe'    %}selected{% endif %}>Needs Review</option>
+          <option value="reject"   {% if reco=='reject'   %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="min_score" class="form-select form-select-sm">
+          <option value="">All scores</option>
+          <option value="70" {% if min_score=='70' %}selected{% endif %}>≥ 70%</option>
+          <option value="50" {% if min_score=='50' %}selected{% endif %}>≥ 50%</option>
+          <option value="30" {% if min_score=='30' %}selected{% endif %}>≥ 30%</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="job_id" class="form-select form-select-sm">
+          <option value="">All jobs</option>
+          {% for j in jobs %}
+          <option value="{{ j.id }}" {% if job_filter==j.id|string %}selected{% endif %}>{{ j.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-fill">Filter</button>
+        <a href="{{ url_for('candidates.list_candidates') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+      </div>
+    </div>
+  </form>
+
+  <!-- Header Bar -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="text-muted small">{{ total }} candidates · sorted by ATS score</div>
+    <a href="{{ url_for('candidates.export_csv') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-download me-1"></i>Export CSV
+    </a>
+  </div>
+
+  <!-- Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="table-responsive">
+      <table class="table ats-table mb-0">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>ATS Score</th>
+            <th>Experience</th>
+            <th>Skills</th>
+            <th>Education</th>
+            <th>Recommendation</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in candidates %}
+          <tr class="clickable-row" data-href="{{ url_for('candidates.detail', cid=c.id) }}">
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="candidate-avatar-sm">{{ (c.name or 'U')[0] }}</div>
+                <div>
+                  <div class="fw-semibold small">{{ c.name }}</div>
+                  <div class="text-muted" style="font-size:11px">{{ c.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar-track">
+                  <div class="score-bar-fill {% if c.ats_score >= 70 %}bg-success{% elif c.ats_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                       style="width:{{ c.ats_score }}%"></div>
+                </div>
+                <span class="score-bar-label fw-semibold small">{{ "%.0f"|format(c.ats_score) }}%</span>
+              </div>
+            </td>
+            <td class="text-muted small">{{ "%.0f"|format(c.years_experience) }}y</td>
+            <td>
+              {% for skill in c.tech_skills_list %}
+                <span class="skill-pill">{{ skill }}</span>
+              {% endfor %}
+              {% if c.technical_skills | length > 5 %}
+                <span class="text-muted small">+more</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ c.education_list[0] if c.education_list else '—' }}</td>
+            <td>
+              {% if c.recommendation_label == 'Highly Recommended' %}
+                <span class="badge rounded-pill bg-success">{{ c.recommendation_label }}</span>
+              {% elif c.recommendation_label == 'Recommended' %}
+                <span class="badge rounded-pill bg-primary">{{ c.recommendation_label }}</span>
+              {% elif c.recommendation_label == 'Needs Review' %}
+                <span class="badge rounded-pill bg-warning text-dark">{{ c.recommendation_label }}</span>
+              {% else %}
+                <span class="badge rounded-pill bg-danger">{{ c.recommendation_label }}</span>
+              {% endif %}
+            </td>
+            <td><span class="badge rounded-pill bg-secondary">{{ c.status }}</span></td>
+            <td>
+              <a href="{{ url_for('candidates.detail', cid=c.id) }}"
+                 class="btn btn-sm btn-outline-primary py-0 px-2" onclick="event.stopPropagation()">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              <i class="bi bi-search fs-2 d-block mb-2 opacity-25"></i>
+              No candidates found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <nav>
+    <ul class="pagination pagination-sm justify-content-center">
+      {% for p in range(1, total_pages+1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link rounded-3" href="?page={{ p }}&search={{ search }}&recommendation={{ reco }}&min_score={{ min_score }}&job_id={{ job_filter }}">
+          {{ p }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Make table rows clickable
+document.querySelectorAll('.clickable-row').forEach(row => {
+  row.style.cursor = 'pointer';
+  row.addEventListener('click', () => window.location = row.dataset.href);
+});
+</script>
+{% endblock %}

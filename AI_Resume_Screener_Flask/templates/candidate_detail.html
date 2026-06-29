@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}{{ c.name }}{% endblock %}
+{% block page_title %}Candidate Profile{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+
+  <!-- Back + Header -->
+  <div class="d-flex align-items-start gap-3 mb-4 flex-wrap">
+    <a href="{{ url_for('candidates.list_candidates') }}" class="btn btn-outline-secondary btn-sm mt-1">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+    <div class="flex-grow-1">
+      <h4 class="mb-1 fw-bold">{{ c.name }}</h4>
+      <div class="d-flex flex-wrap gap-3 text-muted small">
+        {% if c.email %}<span><i class="bi bi-envelope me-1"></i>{{ c.email }}</span>{% endif %}
+        {% if c.phone %}<span><i class="bi bi-telephone me-1"></i>{{ c.phone }}</span>{% endif %}
+        {% if c.linkedin %}
+          <a href="{{ c.linkedin }}" target="_blank" class="text-primary text-decoration-none">
+            <i class="bi bi-linkedin me-1"></i>LinkedIn
+          </a>
+        {% endif %}
+        {% if c.github %}
+          <a href="{{ c.github }}" target="_blank" class="text-dark text-decoration-none">
+            <i class="bi bi-github me-1"></i>GitHub
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Recommendation Badge -->
+    <div>
+      {% if c.recommendation_label == 'Highly Recommended' %}
+        <span class="badge rounded-pill bg-success fs-6 px-4 py-2">{{ c.recommendation_label }}</span>
+      {% elif c.recommendation_label == 'Recommended' %}
+        <span class="badge rounded-pill bg-primary fs-6 px-4 py-2">{{ c.recommendation_label }}</span>
+      {% elif c.recommendation_label == 'Needs Review' %}
+        <span class="badge rounded-pill bg-warning text-dark fs-6 px-4 py-2">{{ c.recommendation_label }}</span>
+      {% else %}
+        <span class="badge rounded-pill bg-danger fs-6 px-4 py-2">{{ c.recommendation_label }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Score Ring Row -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <div class="fw-semibold mb-4">AI Scoring Breakdown</div>
+    <div class="row g-3 text-center">
+      {% set scores = [
+        ('ATS Score',     c.ats_score,          'primary'),
+        ('Skill Match',   c.skill_match,         'success'),
+        ('Experience',    c.experience_match,    'info'),
+        ('Education',     c.education_match,     'warning'),
+        ('Semantic',      c.semantic_score,      'purple'),
+        ('Communication', c.ats_score,           'secondary'),
+      ] %}
+      {% for label, val, color in scores %}
+      <div class="col-4 col-md-2">
+        <div class="score-ring-wrap">
+          <svg viewBox="0 0 80 80" class="score-ring-svg">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#e2e8f0" stroke-width="6"/>
+            <circle cx="40" cy="40" r="30" fill="none"
+              stroke="{% if val >= 70 %}#22c55e{% elif val >= 50 %}#f59e0b{% else %}#ef4444{% endif %}"
+              stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="{{ (val/100) * 188.5 | round(1) }} 188.5"
+              transform="rotate(-90 40 40)"
+              style="transition:stroke-dasharray 1s ease"/>
+            <text x="40" y="45" text-anchor="middle" font-size="14" font-weight="700"
+              fill="{% if val >= 70 %}#22c55e{% elif val >= 50 %}#f59e0b{% else %}#ef4444{% endif %}">
+              {{ "%.0f"|format(val) }}%
+            </text>
+          </svg>
+          <div class="score-ring-label">{{ label }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-12 col-lg-8">
+
+      <!-- AI Summary -->
+      {% if c.ai_summary %}
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="fw-semibold mb-2"><i class="bi bi-stars me-2 text-warning"></i>AI Summary</div>
+        <p class="text-muted mb-0" style="line-height:1.7">{{ c.ai_summary }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Skill Analysis -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="fw-semibold mb-3">Skill Analysis</div>
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <div class="skill-section-label text-success mb-2">
+              <i class="bi bi-check-circle-fill me-1"></i>Matched Skills
+            </div>
+            {% for s in c.matched_list %}
+              <span class="skill-pill skill-pill-match">{{ s }}</span>
+            {% else %}
+              {% for s in c.tech_skills_list[:6] %}
+                <span class="skill-pill skill-pill-match">{{ s }}</span>
+              {% endfor %}
+            {% endfor %}
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="skill-section-label text-danger mb-2">
+              <i class="bi bi-x-circle-fill me-1"></i>Missing Skills
+            </div>
+            {% for s in c.missing_list %}
+              <span class="skill-pill skill-pill-miss">{{ s }}</span>
+            {% else %}
+              <span class="text-muted small">No critical gaps ✓</span>
+            {% endfor %}
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="skill-section-label text-warning mb-2">
+              <i class="bi bi-lightning-fill me-1"></i>Recommended
+            </div>
+            {% for s in c.reco_list %}
+              <div class="small text-muted mb-1"><i class="bi bi-arrow-right me-1"></i>{{ s }}</div>
+            {% else %}
+              <span class="text-muted small">Great coverage!</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% if c.tech_skills_list %}
+        <div class="mt-3 pt-3 border-top">
+          <div class="small fw-semibold text-muted mb-2">All Technical Skills</div>
+          <div>
+            {% for s in c.tech_skills_list %}
+              <span class="skill-pill">{{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- AI Insights -->
+      {% if c.insights_list %}
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="fw-semibold mb-3"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>AI Insights</div>
+        {% for insight in c.insights_list %}
+        <div class="d-flex align-items-start gap-2 mb-2">
+          <div class="mt-1" style="width:6px;height:6px;border-radius:50%;background:#3b82f6;flex-shrink:0"></div>
+          <div class="small text-muted">{{ insight }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-12 col-lg-4">
+
+      <!-- Profile Details -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="fw-semibold mb-3">Profile Details</div>
+        <div class="detail-item">
+          <div class="detail-label">Experience</div>
+          <div class="detail-value">{{ "%.1f"|format(c.years_experience) }} years</div>
+        </div>
+        {% if c.education_list %}
+        <div class="detail-item">
+          <div class="detail-label">Education</div>
+          <div>
+            {% for e in c.education_list %}
+              <div class="detail-value"><i class="bi bi-book text-primary me-1"></i>{{ e }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if c.certs_list %}
+        <div class="detail-item">
+          <div class="detail-label">Certifications</div>
+          <div>
+            {% for cert in c.certs_list %}
+              <div class="small text-muted"><i class="bi bi-award me-1 text-warning"></i>{{ cert }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if c.soft_skills_list %}
+        <div class="detail-item">
+          <div class="detail-label">Soft Skills</div>
+          <div>
+            {% for s in c.soft_skills_list[:5] %}
+              <span class="badge bg-light text-muted border me-1 mb-1" style="font-weight:500">{{ s }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Actions -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="fw-semibold mb-3">Update Status</div>
+        <form method="POST" action="{{ url_for('candidates.update_status', cid=c.id) }}">
+          <div class="d-grid gap-2">
+            <button name="status" value="shortlisted"
+                    class="btn btn-success btn-sm fw-semibold {% if c.status=='shortlisted' %}active{% endif %}">
+              <i class="bi bi-check-circle me-1"></i>Mark Shortlisted
+            </button>
+            <button name="status" value="reviewed"
+                    class="btn btn-primary btn-sm fw-semibold">
+              <i class="bi bi-eye me-1"></i>Mark Reviewed
+            </button>
+            <button name="status" value="rejected"
+                    class="btn btn-danger btn-sm fw-semibold">
+              <i class="bi bi-x-circle me-1"></i>Mark Rejected
+            </button>
+          </div>
+        </form>
+        <div class="d-grid gap-2 mt-3">
+          <a href="{{ url_for('candidates.export_report', cid=c.id) }}"
+             class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download me-1"></i>Download Report
+          </a>
+        </div>
+      </div>
+
+      <!-- Delete -->
+      <div class="text-center">
+        <form method="POST" action="{{ url_for('candidates.delete', cid=c.id) }}"
+              onsubmit="return confirm('Delete this candidate?')">
+          <button class="btn btn-link text-danger small"><i class="bi bi-trash me-1"></i>Delete Candidate</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
