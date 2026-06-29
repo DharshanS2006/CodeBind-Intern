@@ -1,0 +1,12 @@
+Rank,Name,Email,Phone,Years Experience,ATS Score,Skill Match %,Experience Match %,Education Match %,Semantic Score %,Recommendation,Status,Matched Skills,Missing Skills,Education
+1,Divya Reddy,divya@email.com,,3.0,95.0,47.0,51.0,98.0,84.0,Highly Recommended,reviewed,"java, spring, microservices",,B.Tech
+2,Aditya Sharma,aditya@email.com,,6.0,94.0,89.0,94.0,67.0,63.0,Highly Recommended,shortlisted,"python, django, redis","docker, kubernetes",B.Tech
+3,Karan Mehta,karan@email.com,,4.0,78.0,45.0,77.0,69.0,62.0,Recommended,shortlisted,"python, pytorch, tensorflow",,B.Tech
+4,Anjali Singh,anjali@email.com,,1.9,76.0,72.0,80.0,79.0,79.0,Recommended,shortlisted,"python, pytorch, tensorflow","docker, kubernetes",B.Tech
+5,Vikram Patel,vikram@email.com,,1.5,73.0,67.0,81.0,83.0,81.0,Recommended,shortlisted,"python, django, redis",docker,B.Tech
+6,Rohit Kumar,rohit@email.com,,6.1,64.0,87.0,79.0,76.0,79.0,Needs Review,new,"python, django, redis",docker,B.Tech
+7,Rahul Gupta,rahul@email.com,,5.6,63.0,85.0,89.0,92.0,66.0,Needs Review,new,"python, fastapi, postgresql",docker,B.Tech
+8,DHARSHAN S,,,4.0,58.3,33.3,100.0,75.0,2.6,Needs Review,new,"python, fastapi","postgresql, docker, aws, redis",B.Tech
+9,Meera Krishnan,meera@email.com,,2.4,55.0,63.0,70.0,94.0,81.0,Needs Review,new,"python, fastapi, postgresql","docker, kubernetes",B.Tech
+10,Sneha Iyer,sneha@email.com,,6.8,50.0,84.0,75.0,69.0,49.0,Needs Review,new,"react, typescript, tailwind",docker,B.Tech
+11,Priya Nair,priya@email.com,,4.5,47.0,51.0,73.0,84.0,53.0,Not Recommended,new,"python, django, redis",,B.Tech

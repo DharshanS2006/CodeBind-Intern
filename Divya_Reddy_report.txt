@@ -1,0 +1,39 @@
+============================================================
+  AI RESUME SCREENING SYSTEM — CANDIDATE REPORT
+============================================================
+  Generated: June 29, 2026 11:59
+
+CANDIDATE INFORMATION
+----------------------------------------
+  Name         : Divya Reddy
+  Email        : divya@email.com
+  Phone        : —
+  LinkedIn     : —
+  GitHub       : —
+  Experience   : 3.0 years
+  Education    : B.Tech
+
+AI SCORING BREAKDOWN
+----------------------------------------
+  ATS Score         : 95.0 / 100
+  Skill Match       : 47.0%
+  Experience Match  : 51.0%
+  Education Match   : 98.0%
+  Semantic Score    : 84.0%
+
+RECOMMENDATION
+----------------------------------------
+  Highly Recommended
+
+AI SUMMARY
+----------------------------------------
+  Divya Reddy is an experienced engineer with strong java skills.
+
+SKILLS
+----------------------------------------
+  Matched  : java, spring, microservices
+  Missing  : None
+
+============================================================
+  Powered by TalentScan AI Resume Screener
+============================================================
